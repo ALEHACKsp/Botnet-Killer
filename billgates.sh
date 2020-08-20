@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# 上次修改时间 --> 2020-7-3
+# 上次修改时间 --> 2020-8-20
 # --------------------------------------------------
 # 创建备份目录，以清除时间命名
 
@@ -147,7 +147,7 @@ busybox='/tmp/busybox'
 if [ ! -f "$busybox" ]
 then
     echo "[+] downloading busybox..."
-    wget -q --timeout=5 http://www.busybox.net/downloads/binaries/1.31.0-defconfig-multiarch-musl/busybox-$(uname -m) -O $busybox
+    wget --timeout=5 http://www.busybox.net/downloads/binaries/1.31.0-defconfig-multiarch-musl/busybox-$(uname -m) -O $busybox
     echo "[+] download busybox success --> /tmp/busybox" | tee -a $log_file
     chmod a+x $busybox
 fi
@@ -158,6 +158,8 @@ then
     busybox=''
 fi
 
+echo $busybox
+
 # --------------------------------------------------
 # 清除billgates病毒进程
 
@@ -165,11 +167,14 @@ fi
 if [ -f "/tmp/moni.lod" ]
 then
     proc_id="$(cat /tmp/moni.lod)"
-    if [ "$($busybox ps -elf | grep $proc_id | grep -v grep)" ]
+    if [ -n "$(echo $proc_id | egrep '[0-9]{3,6}')" ]
     then
-        cat /proc/$proc_id/exe >> $log_dir/process/$proc_id-sshd.dump
-        echo "[+] clean process --> $($busybox ps -elf | grep $proc_id | grep -v grep | awk '{print $1,$4,$5,$6,$7,$8}')" | tee -a $log_file
-        kill -9 $proc_id
+        if [ -n "$($busybox ps -elf | grep $proc_id | grep -v grep)" ]
+        then
+            cat /proc/$proc_id/exe >> $log_dir/process/$proc_id-sshd.dump
+            echo "[+] clean process --> $proc_id" | tee -a $log_file
+            kill -9 $proc_id
+        fi
     fi
 fi
 
@@ -177,27 +182,38 @@ fi
 if [ -f "/tmp/gates.lod" ]
 then
     proc_id="$(cat /tmp/gates.lod)"
-    if [ "$($busybox ps -elf | grep $proc_id | grep -v grep)" ]
+    if [ -n "$(echo $proc_id | egrep '[0-9]{3,6}')" ]
     then
-        cat /proc/$proc_id/exe >> $log_dir/process/$proc_id-getty.dump
-        echo "[+] clean process --> $($busybox ps -elf | grep $proc_id | grep -v grep | awk '{print $1,$4,$5,$6,$7,$8}')" | tee -a $log_file
-        kill -9 $proc_id
+        if [ -n "$($busybox ps -elf | grep $proc_id | grep -v grep)" ]
+        then
+            cat /proc/$proc_id/exe >> $log_dir/process/$proc_id-getty.dump
+            echo "[+] clean process --> $proc_id" | tee -a $log_file
+            kill -9 $proc_id
+        fi
     fi
 fi
 
 if [ -f "/usr/bin/bsd-port/getty.lock" ]
 then
     proc_id="$(cat /usr/bin/bsd-port/getty.lock)"
-    if [ "$($busybox ps -elf | grep $proc_id | grep -v grep)" ]
+    if [ -n "$(echo $proc_id | egrep '[0-9]{3,6}')" ]
     then
-        cat /proc/$proc_id/exe >> $log_dir/process/$proc_id-getty2.dump
-        echo "[+] clean process --> $($busybox ps -elf | grep $proc_id | grep -v grep | awk '{print $1,$4,$5,$6,$7,$8}')" | tee -a $log_file
-        kill -9 $proc_id
+        if [ -n "$($busybox ps -elf | grep $proc_id | grep -v grep)" ]
+        then
+            cat /proc/$proc_id/exe >> $log_dir/process/$proc_id-getty2.dump
+            echo "[+] clean process --> $proc_id" | tee -a $log_file
+            kill -9 $proc_id
+        fi
     fi
 fi
 
 # --------------------------------------------------
 # 清除billgates病毒文件
+
+if [ -f "/tmp/9999" ]
+then
+    kill_file /tmp/9999
+fi
 
 # 删除病毒程序文件
 if [ -f "/usr/bin/.sshd" ]
