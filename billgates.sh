@@ -62,12 +62,13 @@ cron_dirs=("/var/spool/cron/" "/etc/cron.d/" "/etc/cron.hourly/")
 # 定时任务清除函数
 kill_cron()
 {
+    cron_dirs=("/var/spool/cron/" "/etc/cron.d/" "/etc/cron.hourly/")
     for cron_dir in ${cron_dirs[@]}
     do
-        if [ -n "$(grep -r $1 $cron_dir)" ]
+        if [ -n "$(grep -Er $1 $cron_dir)" ]
         then
-            crontab=$(grep -r $1 $cron_dir)
-            cron_file=$(grep -r $1 $cron_dir | awk '{print $1}' | cat | cut -d : -f 1 | uniq)
+            crontab=$(grep -Er $1 $cron_dir)
+            cron_file=$(grep -Er $1 $cron_dir | awk '{print $1}' | cat | cut -d : -f 1 | uniq)
             cp -n $cron_file $log_dir/crontab
             chattr -ia $cron_file
             sed -i "/$1/d" $cron_file > /dev/null 2>&1
@@ -81,8 +82,67 @@ kill_cron()
 }
 
 # --------------------------------------------------
+# 恢复系统程序
+
+# 恢复系统文件netstat
+if [ -f "/usr/bin/dpkgd/netstat" ]
+then
+	$busybox chattr -i /bin/netstat
+	rm -f /bin/netstat
+	cp -n -f /usr/bin/dpkgd/netstat /bin/
+	
+	$busybox chattr -i /usr/bin/netstat
+	rm -f /usr/bin/netstat
+	cp -n -f /usr/bin/dpkgd/netstat /usr/bin/
+    
+    echo "[+] recover file --> netstat" | tee -a $log_file
+fi
+
+# 恢复系统文件lsof
+if [ -f "/usr/bin/dpkgd/lsof" ]
+then
+	$busybox chattr -i /bin/lsof
+	rm -f /bin/lsof
+	cp -n -f /usr/bin/dpkgd/lsof /bin/
+	
+	$busybox chattr -i /usr/bin/lsof 
+	rm -f /usr/bin/lsof
+	cp -n -f /usr/bin/dpkgd/lsof /usr/bin/
+
+    echo "[+] recover file --> lsof" | tee -a $log_file
+fi
+
+# 恢复系统文件ps
+if [ -f "/usr/bin/dpkgd/ps" ]
+then
+	$busybox chattr -i /bin/ps
+	rm -f /bin/ps
+	cp -n -f /usr/bin/dpkgd/ps /bin/
+	
+	$busybox chattr -i /usr/bin/ps
+	rm -f /usr/bin/ps
+	cp -n -f /usr/bin/dpkgd/ps /usr/bin/
+
+    echo "[+] recover file --> ps" | tee -a $log_file
+fi
+
+# 恢复系统文件ss
+if [ -f "/usr/bin/dpkgd/ss" ]
+then
+	$busybox chattr -i /bin/ss
+	rm -f /bin/ss
+	cp -n -f /usr/bin/dpkgd/ss /bin/
+	
+	$busybox chattr -i /usr/bin/ss
+	rm -f /usr/bin/ss
+	cp -n -f /usr/bin/dpkgd/ss /usr/bin/
+
+    echo "[+] recover file --> ss" | tee -a $log_file
+fi
+
+# --------------------------------------------------
 # 下载busybox工具
-busybox="/tmp/busybox"
+busybox='/tmp/busybox'
 
 if [ ! -f "$busybox" ]
 then
@@ -90,6 +150,12 @@ then
     wget -q --timeout=5 http://www.busybox.net/downloads/binaries/1.31.0-defconfig-multiarch-musl/busybox-$(uname -m) -O $busybox
     echo "[+] download busybox success --> /tmp/busybox" | tee -a $log_file
     chmod a+x $busybox
+fi
+
+busybox_size=$(ls -l $busybox | awk '{print $5}')
+if [ $busybox_size -eq 0 ]
+then
+    busybox=''
 fi
 
 # --------------------------------------------------
@@ -171,63 +237,5 @@ fi
 rm -f /etc/rc[1-5].d/S97DbSecuritySpt
 rm -f /etc/rc[1-5].d/S99selinux
 echo "[+] clean file --> /etc/rc[1-5].d" | tee -a $log_file
-
-# 恢复系统程序
-
-# 恢复系统文件netstat
-if [ -f "/usr/bin/dpkgd/netstat" ]
-then
-	$busybox chattr -i /bin/netstat
-	rm -f /bin/netstat
-	cp -n -f /usr/bin/dpkgd/netstat /bin/
-	
-	$busybox chattr -i /usr/bin/netstat
-	rm -f /usr/bin/netstat
-	cp -n -f /usr/bin/dpkgd/netstat /usr/bin/
-    
-    echo "[+] recover file --> netstat" | tee -a $log_file
-fi
-
-# 恢复系统文件lsof
-if [ -f "/usr/bin/dpkgd/lsof" ]
-then
-	$busybox chattr -i /bin/lsof
-	rm -f /bin/lsof
-	cp -n -f /usr/bin/dpkgd/lsof /bin/
-	
-	$busybox chattr -i /usr/bin/lsof 
-	rm -f /usr/bin/lsof
-	cp -n -f /usr/bin/dpkgd/lsof /usr/bin/
-
-    echo "[+] recover file --> lsof" | tee -a $log_file
-fi
-
-# 恢复系统文件ps
-if [ -f "/usr/bin/dpkgd/ps" ]
-then
-	$busybox chattr -i /bin/ps
-	rm -f /bin/ps
-	cp -n -f /usr/bin/dpkgd/ps /bin/
-	
-	$busybox chattr -i /usr/bin/ps
-	rm -f /usr/bin/ps
-	cp -n -f /usr/bin/dpkgd/ps /usr/bin/
-
-    echo "[+] recover file --> ps" | tee -a $log_file
-fi
-
-# 恢复系统文件ss
-if [ -f "/usr/bin/dpkgd/ss" ]
-then
-	$busybox chattr -i /bin/ss
-	rm -f /bin/ss
-	cp -n -f /usr/bin/dpkgd/ss /bin/
-	
-	$busybox chattr -i /usr/bin/ss
-	rm -f /usr/bin/ss
-	cp -n -f /usr/bin/dpkgd/ss /usr/bin/
-
-    echo "[+] recover file --> ss" | tee -a $log_file
-fi
 
 echo "[+] end clean --> $(date)" | tee -a $log_file
