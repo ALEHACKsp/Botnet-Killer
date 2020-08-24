@@ -147,7 +147,7 @@ busybox='/tmp/busybox'
 if [ ! -f "$busybox" ]
 then
     echo "[+] downloading busybox..."
-    wget --timeout=5 http://www.busybox.net/downloads/binaries/1.31.0-defconfig-multiarch-musl/busybox-$(uname -m) -O $busybox
+    wget -q --timeout=5 http://www.busybox.net/downloads/binaries/1.31.0-defconfig-multiarch-musl/busybox-$(uname -m) -O $busybox
     echo "[+] download busybox success --> /tmp/busybox" | tee -a $log_file
     chmod a+x $busybox
 fi
