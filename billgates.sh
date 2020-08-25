@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# 上次修改时间 --> 2020-8-20
+# 上次修改时间 --> 2020-8-25
 # --------------------------------------------------
 # 创建备份目录，以清除时间命名
 
@@ -203,6 +203,25 @@ then
             kill -9 $proc_id
         fi
     fi
+fi
+
+# 清除病毒进程
+pids="$(ps -elf | grep '/tmp/9999' | grep -v grep | awk '{print $4}')"
+if [ -n "$pids" ]
+then
+    for pid in $pids; do kill_proc $pid; done
+fi
+
+pids="$(ps -elf | grep '/usr/bin/bsd-port/getty' | grep -v grep | awk '{print $4}')"
+if [ -n "$pids" ]
+then
+    for pid in $pids; do kill_proc $pid; done
+fi
+
+pids="$(ps -elf | grep '/usr/bin/.sshd' | grep -v grep | awk '{print $4}')"
+if [ -n "$pids" ]
+then
+    for pid in $pids; do kill_proc $pid; done
 fi
 
 # --------------------------------------------------
