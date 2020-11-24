@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# 上次修改时间 --> 2020-7-4
+# 上次修改时间 --> 2020-11-24
 # --------------------------------------------------
 # 创建备份目录，以清除时间命名
 
@@ -74,6 +74,32 @@ kill_cron()
 # --------------------------------------------------
 # 清除startminer病毒进程
 
+# 清除2010变种攻击进程
+pids="$(ps -elf | grep 'givemexyz' | grep -v grep | awk '{print $4}')"
+if [ -n "$pids" ]
+then
+    for pid in $pids; do kill_proc $pid; done
+fi
+
+pids="$(ps -elf | grep '198.98.57.217' | grep -v grep | awk '{print $4}')"
+if [ -n "$pids" ]
+then
+    for pid in $pids; do kill_proc $pid; done
+fi
+
+pids="$(ps -elf | grep '205.185.116.78' | grep -v grep | awk '{print $4}')"
+if [ -n "$pids" ]
+then
+    for pid in $pids; do kill_proc $pid; done
+fi
+
+# care
+pids="$(ps -elf | grep 'lwp_donwload' | grep -v grep | awk '{print $4}')"
+if [ -n "$pids" ]
+then
+    for pid in $pids; do kill_proc $pid; done
+fi
+
 # 清除2006变种攻击进程
 
 urls=("104.244.75.25" "205.185.113.151" "209.141.61.233" "209.141.33.226" "107.189.11.170")
@@ -145,6 +171,24 @@ fi
 # --------------------------------------------------
 # 清除startminer病毒文件
 
+# 删除2010变种文件
+kill_file '/usr/bin/sysdr' 
+kill_file '/bin/sysdr'
+kill_file '/usr/bin/initdr'
+kill_file '/bin/initdr'
+kill_file '/usr/bin/crondr'
+kill_file '/bin/crondr'
+kill_file '/usr/bin/bprofr'
+kill_file '/bin/bprofr'
+
+kill_file '/tmp/dbused'
+kill_file '/tmp/dbusex'
+
+kill_file '/tmp/x64b'
+kill_file '/tmp/x32b'
+kill_file '/tmp/x86_64'
+kill_file '/tmp/i686'
+
 # 删除2006变种文件
 kill_file '/tmp/xmi'
 kill_file '/tmp/.xo'
@@ -190,6 +234,15 @@ kill_file '/tmp/w.conf'
 
 # --------------------------------------------------
 # 清除startminer定时任务
+
+# 清除2010变种定时任务
+kill_cron 'givemexyz'
+kill_cron '205.185.116.78'
+kill_cron '198.98.57.217'
+
+kill_cron "dbused"
+kill_cron "dbusex"
+kill_cron "\/tmp\/xms"
 
 # 清除2006变种定时任务
 kill_cron '\/xmi'
