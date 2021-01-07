@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# 上次修改时间 --> 2020-11-24
+# 上次修改时间 --> 2021-1-7
 # --------------------------------------------------
 # 创建备份目录，以清除时间命名
 
@@ -48,7 +48,7 @@ kill_proc()
     fi
 }
 
-cron_dirs=("/var/spool/cron/" "/etc/cron.d/" "/etc/cron.hourly/")
+cron_dirs=("/var/spool/cron/" "/etc/cron.d/" "/etc/cron.hourly/" "/etc/cron.daily/" "/etc/cron.weekly" "/etc/cron.monthly" "/var/spool/cron/crontabs" )
 
 # 定时任务清除函数
 kill_cron()
