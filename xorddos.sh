@@ -2,7 +2,7 @@
 
 busybox="/tmp/busybox"
 
-# 上次修改时间 --> 2020-7-3
+# 上次修改时间 --> 2020-11-16
 # --------------------------------------------------
 # 创建备份目录，以清除时间命名
 
@@ -84,42 +84,61 @@ then
     chmod a+x $busybox
 fi
 
+# 清除xorddos
+kill_xorddos()
+{
+    echo "[+] clear script path: $1" | tee -a $log_file
+    if [ -n "$1" ]
+    then
+        script_name="$(basename $1)"
+    fi
+
+    # 清除xorddos病毒进程
+    if [ -n "$script_name" ]
+    then
+        pids="$($busybox ps -elf | grep $script_name | grep -v grep | awk '{print $1}')"
+        for pid in $pids; do kill_proc $pid; done
+
+        pids="$($busybox netstat -atnp | grep ':5009' | grep -v grep | awk '{print $7}' | cut -d / -f 1)"
+        for pid in $pids; do kill_proc $pid; done
+    fi
+
+    # 清除自启动项
+    if [ -n "$script_name" ]
+    then
+        kill_file /boot/$script_name
+        chattr +i /boot/
+        kill_file /usr/bin/$script_name
+        chattr +i /usr/bin/
+
+        rm -f /etc/rc[1-5].d/S90$script_name
+        rm -f /etc/rc.d/rc[1-5].d/S90$script_name
+    fi
+
+    # 清除脚本文件
+    kill_file $1
+    
+    # 清除xorddos病毒服务
+    if [ -n "$script_name" ]
+    then
+        # 判断命令是否存在
+        if [ -x "$(command -v chkconfig)" ]
+        then
+            chkconfig –del $script_name
+        fi
+
+        if [ -x "$(command -v update-rc.d)" ]
+        then
+            update-rc.d $script_name remove
+        fi
+    fi
+}
+
 # 获取病毒随机名
-script_path="$(grep -r '# chkconfig: 12345 90 90' /etc/init.d/ | awk '{print $1}' | cut -d : -f 1)"
-
-if [ -n "$script_path" ]
-then
-    script_name="$(basename $script_path)"
-fi
-
-# --------------------------------------------------
-# 清除xorddos病毒进程
-if [ -n "$script_name" ]
-then
-    pids="$($busybox ps -elf | grep $script_name | grep -v grep | awk '{print $1}')"
-    for pid in $pids; do kill_proc $pid; done
-
-    pids="$($busybox netstat -atnp | grep ':5009' | grep -v grep | awk '{print $7}' | cut -d / -f 1)"
-    for pid in $pids; do kill_proc $pid; done
-fi
-
-# --------------------------------------------------
-# 清除xorddos病毒文件
-
-# 清除自启动项
-if [ -n "$script_name" ]
-then
-    kill_file /boot/$script_name
-    chattr +i /boot/
-    kill_file /usr/bin/$script_name
-    chattr +i /usr/bin/
-
-    rm -f /etc/rc[1-5].d/S90$script_name
-    rm -f /etc/rc.d/rc[1-5].d/S90$script_name
-fi
+script_paths="$(grep -r '# chkconfig: 12345 90 90' /etc/init.d/ | awk '{print $1}' | cut -d : -f 1)"
+for script_path in $script_paths; do kill_xorddos $script_path; done
 
 # 清除脚本文件
-kill_file $script_path
 chattr +i /etc/init.d/
 
 kill_file '/etc/cron.hourly/udev.sh'
@@ -141,22 +160,6 @@ kill_file '/lib/udev/debug'
 kill_file '/lib/udev/udev'
 kill_file '/lib/udev/dev'
 chattr +i '/lib/udev/'
-
-# --------------------------------------------------
-# 清除xorddos病毒服务
-if [ -n "$script_name" ]
-then
-    # 判断命令是否存在
-    if [ -x "$(command -v chkconfig)" ]
-    then
-        chkconfig –del $script_name
-    fi
-
-    if [ -x "$(command -v update-rc.d)" ]
-    then
-        update-rc.d $script_name remove
-    fi
-fi
 
 # --------------------------------------------------
 # 还原关键目录属性
